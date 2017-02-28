@@ -1,0 +1,32 @@
+{
+  "name": "nicolive-api",
+  "version": "1.0.0",
+  "description": "api client for live.nicovideo.jp",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel src -d lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tsuwatch/nicolive-api.git"
+  },
+  "keywords": [
+    "niconico"
+  ],
+  "author": "tsuwatch",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tsuwatch/nicolive-api/issues"
+  },
+  "homepage": "https://github.com/tsuwatch/nicolive-api#readme",
+  "devDependencies": {
+    "babel-cli": "^6.23.0",
+    "babel-preset-latest": "^6.22.0",
+    "babel-preset-stage-1": "^6.22.0"
+  },
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "request": "^2.79.0"
+  }
+}

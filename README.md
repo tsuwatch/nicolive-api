@@ -13,9 +13,13 @@ an api client for live.nicovideo.jp
 ```javascript
 import nicolive from 'nicolive-api'
 
-nicolive.login('foo@bar.com', 'xxx').then(cookievalue => {
-  nicolive.view('lvxxxx', cookievalue).then(viewer => {
-    viewer.on('comment', (comment => {
+nicolive.login('foo@bar.com', 'xxx').then(client => {
+  client.connect('lvxxxx').then(connection => {
+    connection.on('handshaked', ((attrs, status) => {
+      client.comment('wakotsu');
+    }));
+
+    connection.on('comment', (comment => {
       console.log(comment.text);
     }));
   });

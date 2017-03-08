@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "cheerio": "^0.22.0",
+    "querystring": "^0.2.0",
     "request": "^2.79.0"
   }
 }

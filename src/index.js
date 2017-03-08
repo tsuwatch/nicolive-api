@@ -1,3 +1,1 @@
-export login from './login';
-export getPlayerStatus from './getPlayerStatus';
-export view from './view';
+export default from './NicoliveAPI';

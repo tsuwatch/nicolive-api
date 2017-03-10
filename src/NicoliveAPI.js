@@ -111,10 +111,10 @@ export default class NicoliveAPI {
             if (resultCodeValue) {
               const foundThread = data.find('thread');
               const ticket = foundThread.attr('ticket');
-              playerStatus.last_res = foundThread.attr('last_res');
+              this.playerStatus.last_res = foundThread.attr('last_res');
               this.attrs = {thread, ticket, mail, user_id, premium};
               if (resultCodeValue === '0') {
-                this.connection.emit('handshaked', this.attrs, playerStatus);
+                this.connection.emit('handshaked', this.attrs, this.playerStatus);
               } else {
                 this.connection.emit('error', foundThread.toString());
               }
@@ -131,7 +131,7 @@ export default class NicoliveAPI {
               const {anonymity, user_id} = comment.attr;
               if (!anonymity && user_id) comment.usericon = `http://usericon.nimg.jp/usericon/${user_id.slice(0, 2)}/${user_id}.jpg`;
               this.connection.emit('comment', comment);
-              if (comment.attr.no > playerStatus.comment_count) playerStatus.last_res = comment.attr.no;
+              if (comment.attr.no > this.playerStatus.comment_count) this.playerStatus.last_res = comment.attr.no;
             }
           }));
 

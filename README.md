@@ -2,7 +2,7 @@
 [![npm version](https://badge.fury.io/js/nicolive-api.svg)](https://badge.fury.io/js/nicolive-api)
 [![Build Status](https://travis-ci.org/tsuwatch/nicolive-api.svg?branch=master)](https://travis-ci.org/tsuwatch/nicolive-api)
 
-an api client for live.nicovideo.jp
+a comments viewer wrapper for live.nicovideo.jp
 
 ## Installation
 

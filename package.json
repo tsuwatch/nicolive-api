@@ -2,7 +2,7 @@
   "name": "nicolive-api",
   "version": "0.2.2",
   "description": "api client for live.nicovideo.jp",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "files": [
     "lib",
     "*.md"

@@ -3,6 +3,10 @@
   "version": "0.2.1",
   "description": "api client for live.nicovideo.jp",
   "main": "src/index.js",
+  "files": [
+    "lib",
+    "*.md"
+  ],
   "scripts": {
     "prepublish": "npm run build",
     "lint": "eslint ./src",

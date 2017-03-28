@@ -31,5 +31,6 @@ nicolive.login('foo@bar.com', 'xxx').then(client => {
     viewer.connection.on('notify', (comment => {
       console.log(comment.text);
     }));
+  });
 });
 ```

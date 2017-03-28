@@ -1,8 +1,7 @@
-import net from 'net';
 import request from 'request';
 import cheerio from 'cheerio';
-import querystring from 'querystring';
 import AlertViewer from './viewer/AlertViewer';
+import LiveViewer from './viewer/LiveViewer';
 
 export default class NicoliveAPI {
   static login({email, password}) {
@@ -35,9 +34,6 @@ export default class NicoliveAPI {
 
   constructor(cookie) {
     this.cookie = cookie;
-    this.connection = null;
-    this.playerStatus = null;
-    this.attrs = null;
   }
 
   getPlayerStatus(liveId) {
@@ -149,17 +145,29 @@ export default class NicoliveAPI {
     });
   }
 
-  comment(text, options = {}) {
-    this.getPostKey().then(postkey => {
-      const vpos = (Math.floor(Date.now() / 1000) - this.playerStatus.open_time) * 100;
-      const chat = cheerio('<chat />');
-      chat.attr(JSON.parse(JSON.stringify(this.attrs)));
-      chat.attr({vpos})
-      chat.attr({postkey});
-      if (options.mail) chat.attr('mail', options.mail);
-      chat.text(text);
 
-      this.connection.write(`${chat}\0`);
+  connectLive(liveId) {
+    return new Promise((resolve, reject) => {
+      this.getPlayerStatus(liveId)
+        .then(playerStatus => {
+          const {port, addr, open_time, thread, version, res_from, user_id, premium, mail} = playerStatus;
+          const viewer = new LiveViewer({
+            port,
+            addr,
+            open_time,
+            thread,
+            version,
+            res_from,
+            user_id,
+            premium,
+            mail,
+            cookie: this.cookie
+          });
+          viewer.establish();
+
+          resolve(viewer);
+      })
+        .catch(err => reject(err));
     });
   }
 }

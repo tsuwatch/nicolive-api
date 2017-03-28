@@ -1,6 +1,4 @@
 import cheerio from 'cheerio';
-import querystring from 'querystring';
-import request from 'request';
 import BaseViewer from './BaseViewer';
 
 export default class LiveViewer extends BaseViewer {
@@ -21,14 +19,14 @@ export default class LiveViewer extends BaseViewer {
       addr,
       thread,
       version,
-      res_from
+      res_from,
+      cookie
     });
 
     this.open_time = open_time;
     this.user_id = user_id;
     this.premium = premium;
     this.mail = mail;
-    this.cookie = cookie;
   }
 
   setOnDataEvent() {
@@ -67,7 +65,7 @@ export default class LiveViewer extends BaseViewer {
 
   comment(text, options = {}) {
     return new Promise((resolve, reject) => {
-      this.getPostKey()
+      this.client.getPostKey(this.thread, this.last_res)
         .then(postkey => {
           const vpos = (Math.floor(Date.now() / 1000) - this.open_time) * 100;
           const chat = cheerio('<chat />');
@@ -87,29 +85,6 @@ export default class LiveViewer extends BaseViewer {
           resolve();
         })
         .catch(err => reject(err));
-    });
-  }
-
-  getPostKey() {
-    return new Promise((resolve, reject) => {
-      const query = querystring.stringify({
-        thread: this.thread,
-        block_no: Math.floor((parseInt(this.last_res) + 1) / 100)
-      });
-      request({
-        url: `http://live.nicovideo.jp/api/getpostkey?${query}`,
-        headers: {
-          Cookie: this.cookie
-        }
-      }, (err, res, body) => {
-        if (err) reject(err);
-
-        const postKey = body.split('=').pop();
-
-        if (postKey === '') reject('fail');
-
-        resolve(postKey);
-      })
     });
   }
 }

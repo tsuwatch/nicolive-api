@@ -1,5 +1,6 @@
 import request from 'request';
 import cheerio from 'cheerio';
+import querystring from 'querystring';
 import AlertViewer from './viewer/AlertViewer';
 import LiveViewer from './viewer/LiveViewer';
 
@@ -36,6 +37,52 @@ export default class NicoliveAPI {
     this.cookie = cookie;
   }
 
+  getPostKey(thread, lastRes) {
+    return new Promise((resolve, reject) => {
+      const query = querystring.stringify({
+        thread,
+        block_no: Math.floor((parseInt(lastRes) + 1) / 100)
+      });
+      request({
+        url: `http://live.nicovideo.jp/api/getpostkey?${query}`,
+        headers: {
+          Cookie: this.cookie
+        }
+      }, (err, res, body) => {
+        if (err) reject(err);
+
+        const postKey = body.split('=').pop();
+
+        if (postKey === '') reject('fail');
+
+        resolve(postKey);
+      })
+    });
+  }
+
+  getAlertTicket() {
+    return new Promise((resolve, reject) => {
+      request.post(
+        {
+          url: 'https://secure.nicovideo.jp/secure/login?site=nicolive_antenna',
+          form: {
+            mail: this.email,
+            password: this.password
+          }
+        }
+        , ((err, res) => {
+          if (err) reject(err);
+
+          const body = cheerio(res.body);
+
+          if (body['1'].attribs['status'] !== 'ok') reject('fail');
+
+          resolve(body.find('ticket').eq(0).text());
+        })
+      );
+    });
+  }
+
   getPlayerStatus(liveId) {
     return new Promise((resolve, reject) => {
       request({
@@ -66,29 +113,6 @@ export default class NicoliveAPI {
           mail: '184'
         });
       });
-    });
-  }
-
-  getAlertTicket() {
-    return new Promise((resolve, reject) => {
-      request.post(
-        {
-          url: 'https://secure.nicovideo.jp/secure/login?site=nicolive_antenna',
-          form: {
-            mail: this.email,
-            password: this.password
-          }
-        }
-        , ((err, res) => {
-          if (err) reject(err);
-
-          const body = cheerio(res.body);
-
-          if (body['1'].attribs['status'] !== 'ok') reject('fail');
-
-          resolve(body.find('ticket').eq(0).text());
-        })
-      );
     });
   }
 
@@ -125,6 +149,33 @@ export default class NicoliveAPI {
     });
   }
 
+  getStreamInfo(liveId) {
+    return new Promise((resolve, reject) => {
+      request({
+        url: `http://live.nicovideo.jp/api/getstreaminfo/lv${liveId}`,
+        headers: {
+          Cookie: this.cookie
+        }
+      }, (err, res, body) => {
+        if (err) reject(err);
+
+        const streamInfo = cheerio(body);
+
+        if (streamInfo['2'].attribs['status'] === 'fail') reject('fail');
+
+        resolve({
+          contentId: `lv${liveId}`,
+          title: streamInfo.find('title').eq(0).text(),
+          description: streamInfo.find('description').eq(0).text(),
+          providerType: streamInfo.find('provider_type').eq(0).text(),
+          defaultCommunity: streamInfo.find('default_community').eq(0).text(),
+          name: streamInfo.find('name').eq(0).text(),
+          thumbnail: streamInfo.find('thumbnail').eq(0).text()
+        });
+      });
+    });
+  }
+
   connectAlert() {
     return new Promise((resolve, reject) => {
       Promise.resolve()
@@ -136,7 +187,7 @@ export default class NicoliveAPI {
         })
         .then(status => {
           const {port, addr, thread, communityIds} = status;
-          const viewer = new AlertViewer({port, addr, thread, communityIds});
+          const viewer = new AlertViewer({port, addr, thread, communityIds, cookie: this.cookie});
           viewer.establish();
 
           resolve(viewer);

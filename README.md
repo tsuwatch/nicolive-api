@@ -28,8 +28,8 @@ nicolive.login('foo@bar.com', 'xxx').then(client => {
     viewer.connection.on('handshaked', () => {
       console.log('handshaked');
     });
-    viewer.connection.on('notify', (comment => {
-      console.log(comment.text);
+    viewer.connection.on('notify', (info => {
+      console.log(info.contentId);
     }));
   });
 });

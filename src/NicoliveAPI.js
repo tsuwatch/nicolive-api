@@ -2,6 +2,7 @@ import net from 'net';
 import request from 'request';
 import cheerio from 'cheerio';
 import querystring from 'querystring';
+import AlertViewer from './viewer/AlertViewer';
 
 export default class NicoliveAPI {
   static login({email, password}) {
@@ -20,8 +21,13 @@ export default class NicoliveAPI {
           const cookies = res.headers['set-cookie'];
           const cookie = cookies.find((cookie => cookie.indexOf('user_session=user_session') === 0)) || '';
           const userSession = cookie.slice(0, cookie.indexOf(';') + 1)
+
           if (!userSession) reject('Invalid user');
-          resolve(new NicoliveAPI(userSession));
+
+          const client = new NicoliveAPI(userSession);
+          client.email = email;
+          client.password = password;
+          resolve(client);
         })
       );
     });
@@ -67,76 +73,78 @@ export default class NicoliveAPI {
     });
   }
 
-  getPostKey() {
+  getAlertTicket() {
     return new Promise((resolve, reject) => {
-      const query = querystring.stringify({
-        thread: this.attrs.thread,
-        block_no: Math.floor((parseInt(this.playerStatus.no) + 1) / 100)
-      });
-      request({
-        url: `http://live.nicovideo.jp/api/getpostkey?${query}`,
-        headers: {
-          Cookie: this.cookie
+      request.post(
+        {
+          url: 'https://secure.nicovideo.jp/secure/login?site=nicolive_antenna',
+          form: {
+            mail: this.email,
+            password: this.password
+          }
         }
-      }, (err, res, body) => {
-        if (err) reject(err);
+        , ((err, res) => {
+          if (err) reject(err);
 
-        resolve(body.split('=').pop());
-      })
+          const body = cheerio(res.body);
+
+          if (body['1'].attribs['status'] !== 'ok') reject('fail');
+
+          resolve(body.find('ticket').eq(0).text());
+        })
+      );
     });
   }
 
-  connect(liveId) {
+  getAlertStatus(ticket) {
     return new Promise((resolve, reject) => {
-      this.getPlayerStatus(liveId)
-        .then(playerStatus => {
-          this.playerStatus = playerStatus;
-          const {port, addr, thread, version, res_from, user_id, premium, mail} = playerStatus;
-          this.connection = net.connect(port, addr);
+      request.post(
+        {
+          url: 'http://live.nicovideo.jp/api/getalertstatus',
+          form: { ticket }
+        }
+        , ((err, res) => {
+          if (err) reject(err);
 
-          this.connection.on('connect', () => {
-            const comment = cheerio('<thread />');
-            comment.attr({thread, version, res_from});
-            comment.options.xmlMode = 'on';
-            this.connection.write(comment.toString() + '\0');
-            this.connection.setEncoding('utf-8');
+          const body = cheerio(res.body);
+
+          if (body['2'].attribs['status'] !== 'ok') reject('fail')
+
+          const communities = body.find('community_id');
+          let communityIds = [];
+          for (let i=0, len=communities.length; i < len; i++) {
+            const element = cheerio(communities[i]);
+            communityIds.push(element.text());
+          }
+
+          resolve({
+            user_hash: body.find('user_hash').eq(0).text(),
+            addr: body.find('addr').eq(0).text(),
+            port: body.find('port').eq(0).text(),
+            thread: body.find('thread').eq(0).text(),
+            communityIds
           });
+        })
+      );
+    });
+  }
 
-          this.connection.on('data', ((buffer) => {
-            const chunk = buffer.toString();
-            if (!chunk.match(/\0$/)) return;
-            const data = cheerio(`<data>${chunk}</data>`);
+  connectAlert() {
+    return new Promise((resolve, reject) => {
+      Promise.resolve()
+        .then(() => {
+          return this.getAlertTicket()
+        })
+        .then(ticket => {
+          return this.getAlertStatus(ticket);
+        })
+        .then(status => {
+          const {port, addr, thread, communityIds} = status;
+          const viewer = new AlertViewer({port, addr, thread, communityIds});
+          viewer.establish();
 
-            const resultCodeValue = data.find('thread').attr('resultcode');
-            if (resultCodeValue) {
-              const foundThread = data.find('thread');
-              const ticket = foundThread.attr('ticket');
-              this.playerStatus.last_res = foundThread.attr('last_res');
-              this.attrs = {thread, ticket, mail, user_id, premium};
-              if (resultCodeValue === '0') {
-                this.connection.emit('handshaked', this.attrs, this.playerStatus);
-              } else {
-                this.connection.emit('error', foundThread.toString());
-              }
-            }
-
-            const comments = data.find('chat');
-            for (let i=0, len=comments.length; i < len; i++) {
-              const element = cheerio(comments[i]);
-              const comment = {
-                attr: element.attr(),
-                text: element.text(),
-                usericon: 'http://uni.res.nimg.jp/img/user/thumb/blank.jpg'
-              };
-              const {anonymity, user_id} = comment.attr;
-              if (!anonymity && user_id) comment.usericon = `http://usericon.nimg.jp/usericon/${user_id.slice(0, 2)}/${user_id}.jpg`;
-              this.connection.emit('comment', comment);
-              if (comment.attr.no > this.playerStatus.comment_count) this.playerStatus.last_res = comment.attr.no;
-            }
-          }));
-
-          resolve(this.connection);
-      })
+          resolve(viewer);
+        })
         .catch(err => reject(err));
     });
   }

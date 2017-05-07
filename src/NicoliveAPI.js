@@ -102,9 +102,11 @@ export default class NicoliveAPI {
         resolve({
           port: ms.find('port').eq(0).text(),
           addr: ms.find('addr').eq(0).text(),
-          open_time: playerStatus.find('open_time').eq(0).text(),
           title: playerStatus.find('title').eq(0).text(),
           description: playerStatus.find('description').eq(0).text(),
+          watch_count: playerStatus.find('watch_count').eq(0).text(),
+          comment_count: playerStatus.find('comment_count').eq(0).text(),
+          open_time: playerStatus.find('open_time').eq(0).text(),
           thread: ms.find('thread').eq(0).text(),
           version: '20061206',
           res_from: 0,

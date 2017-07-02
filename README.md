@@ -14,12 +14,11 @@ a comments viewer wrapper for live.nicovideo.jp
 import nicolive from 'nicolive-api'
 
 nicolive.login('foo@bar.com', 'xxx').then(client => {
-  client.connectLive('lvxxxx').then(viewer => {
-    viewer.connection.on('handshaked', () => {
-      viewer.comment('wakotsu');
+  client.connectLive('lvxxxx').then(manager => {
+    manager.viewer.connection.on('handshaked', () => {
+      manager.viewer.comment('wakotsu');
     });
-
-    viewer.connection.on('comment', (comment => {
+    manager.viewer.connection.on('comment', (comment => {
       console.log(comment.text);
     }));
   });

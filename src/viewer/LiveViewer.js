@@ -1,5 +1,6 @@
 import cheerio from 'cheerio';
 import BaseViewer from './BaseViewer';
+import Comment from '../Comment';
 
 export default class LiveViewer extends BaseViewer {
   constructor({
@@ -12,7 +13,8 @@ export default class LiveViewer extends BaseViewer {
     user_id,
     premium,
     mail,
-    cookie
+    cookie,
+    room
   }) {
     super({
       port,
@@ -27,9 +29,11 @@ export default class LiveViewer extends BaseViewer {
     this.user_id = user_id;
     this.premium = premium;
     this.mail = mail;
+    this.room = room;
   }
 
-  setOnDataEvent() {
+  setOnDataEvent(connection) {
+    const mainConnection = connection ? connection : this.connection;
     this.connection.on('data', (buffer => {
       const chunk = buffer.toString();
       if (!chunk.match(/\0$/)) return;
@@ -43,21 +47,17 @@ export default class LiveViewer extends BaseViewer {
         if (resultCodeValue === '0') {
           this.connection.emit('handshaked');
         } else {
-          this.connection.emit('error', foundThread.toString());
+          this.connection.emit('fail', foundThread.toString());
+          this.connection.destroy();
         }
       }
 
       const comments = data.find('chat');
       for (let i=0, len=comments.length; i < len; i++) {
         const element = cheerio(comments[i]);
-        const comment = {
-          attr: element.attr(),
-          text: element.text(),
-          usericon: 'http://uni.res.nimg.jp/img/user/thumb/blank.jpg'
-        };
-        const {anonymity, user_id} = comment.attr;
-        if (!anonymity && user_id) comment.usericon = `http://usericon.nimg.jp/usericon/${user_id.slice(0, 2)}/${user_id}.jpg`;
-        this.connection.emit('comment', comment);
+        const comment = new Comment(element, this.room);
+
+        mainConnection.emit('comment', comment);
         this.last_res = comment.attr.no;
       }
     }));

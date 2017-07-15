@@ -20,10 +20,10 @@ export default class BaseViewer {
     this.client = new NicoliveAPI(cookie);
   }
 
-  establish() {
+  establish(viewer) {
     this.connect();
     this.setOnConnectEvent();
-    this.setOnDataEvent();
+    this.setOnDataEvent(viewer);
   }
 
   connect() {

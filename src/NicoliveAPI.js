@@ -2,7 +2,8 @@ import request from 'request';
 import cheerio from 'cheerio';
 import querystring from 'querystring';
 import AlertViewer from './viewer/AlertViewer';
-import LiveViewer from './viewer/LiveViewer';
+import Manager from './Manager';
+import Community from './Community';
 
 export default class NicoliveAPI {
   static login({email, password}) {
@@ -70,14 +71,14 @@ export default class NicoliveAPI {
             password: this.password
           }
         }
-        , ((err, res) => {
+        , ((err, res, body) => {
           if (err) reject(err);
 
-          const body = cheerio(res.body);
+          const alertTicket = cheerio(body);
 
-          if (body['1'].attribs['status'] !== 'ok') reject('fail');
+          if (alertTicket['1'].attribs['status'] !== 'ok') reject('fail');
 
-          resolve(body.find('ticket').eq(0).text());
+          resolve(alertTicket.find('ticket').eq(0).text());
         })
       );
     });
@@ -99,19 +100,29 @@ export default class NicoliveAPI {
         if (errMessage.length) reject(errMessage);
 
         const ms = playerStatus.find('ms');
+        const stream = playerStatus.find('stream');
+        const user = playerStatus.find('user');
         resolve({
-          port: ms.find('port').eq(0).text(),
-          addr: ms.find('addr').eq(0).text(),
-          title: playerStatus.find('title').eq(0).text(),
-          description: playerStatus.find('description').eq(0).text(),
-          watch_count: playerStatus.find('watch_count').eq(0).text(),
-          comment_count: playerStatus.find('comment_count').eq(0).text(),
-          open_time: playerStatus.find('open_time').eq(0).text(),
-          thread: ms.find('thread').eq(0).text(),
+          stream: {
+            title: stream.find('title').eq(0).text(),
+            description: stream.find('description').eq(0).text(),
+            default_community: stream.find('default_community').eq(0).text(),
+            open_time: stream.find('open_time').eq(0).text(),
+          },
+          ms: {
+            addr: ms.find('addr').eq(0).text(),
+            port: ms.find('port').eq(0).text(),
+            thread: ms.find('thread').eq(0).text(),
+          },
+          user: {
+            user_id: user.find('user_id').eq(0).text(),
+            nickname: user.find('nickname').eq(0).text(),
+            premium: user.find('is_premium').eq(0).text(),
+            room_label: user.find('room_label').eq(0).text(),
+            room_seetno: user.find('room_seetno').eq(0).text()
+          },
           version: '20061206',
           res_from: 0,
-          user_id: playerStatus.find('user_id').eq(0).text(),
-          premium: playerStatus.find('is_premium').eq(0).text(),
           mail: '184'
         });
       });
@@ -125,14 +136,14 @@ export default class NicoliveAPI {
           url: 'http://live.nicovideo.jp/api/getalertstatus',
           form: { ticket }
         }
-        , ((err, res) => {
+        , ((err, res, body) => {
           if (err) reject(err);
 
-          const body = cheerio(res.body);
+          const alertStatus = cheerio(body);
 
-          if (body['2'].attribs['status'] !== 'ok') reject('fail')
+          if (alertStatus['2'].attribs['status'] !== 'ok') reject('fail')
 
-          const communities = body.find('community_id');
+          const communities = alertStatus.find('community_id');
           let communityIds = [];
           for (let i=0, len=communities.length; i < len; i++) {
             const element = cheerio(communities[i]);
@@ -140,10 +151,10 @@ export default class NicoliveAPI {
           }
 
           resolve({
-            user_hash: body.find('user_hash').eq(0).text(),
-            addr: body.find('addr').eq(0).text(),
-            port: body.find('port').eq(0).text(),
-            thread: body.find('thread').eq(0).text(),
+            user_hash: alertStatus.find('user_hash').eq(0).text(),
+            addr: alertStatus.find('addr').eq(0).text(),
+            port: alertStatus.find('port').eq(0).text(),
+            thread: alertStatus.find('thread').eq(0).text(),
             communityIds
           });
         })
@@ -178,6 +189,25 @@ export default class NicoliveAPI {
     });
   }
 
+  getCommunity(communityId) {
+    return new Promise((resolve, reject) => {
+      const isChannel = /ch\d+/.test(communityId);
+      request({
+        url: `${isChannel ? 'http://ch.nicovideo.jp/' : 'http://com.nicovideo.jp/community/'}${communityId}`,
+        headers: {
+          Cookie: this.cookie
+        }
+      }, (err, res, body) => {
+        if (err) reject(err);
+
+        const community = isChannel ? Community.createByChannelData(cheerio(body)) : Community.createByCommunityData(cheerio(body));
+        community.communityId = communityId;
+
+        resolve(community);
+      });
+    });
+  }
+
   connectAlert() {
     return new Promise((resolve, reject) => {
       Promise.resolve()
@@ -200,26 +230,19 @@ export default class NicoliveAPI {
 
 
   connectLive(liveId) {
+    let manager = null;
     return new Promise((resolve, reject) => {
-      this.getPlayerStatus(liveId)
+      Promise.resolve()
+        .then(() => {
+          return this.getPlayerStatus(liveId)
+        })
         .then(playerStatus => {
-          const {port, addr, open_time, thread, version, res_from, user_id, premium, mail} = playerStatus;
-          const viewer = new LiveViewer({
-            port,
-            addr,
-            open_time,
-            thread,
-            version,
-            res_from,
-            user_id,
-            premium,
-            mail,
-            cookie: this.cookie
-          });
-          viewer.establish();
-
-          resolve(viewer);
-      })
+          manager = new Manager(playerStatus, this.cookie);
+          return this.getCommunity(playerStatus.stream.default_community);
+        }).then(community => {
+          manager.live.community = community;
+          manager.connectAll().then(() => resolve(manager));
+        })
         .catch(err => reject(err));
     });
   }

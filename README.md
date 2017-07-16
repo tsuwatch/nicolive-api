@@ -23,6 +23,7 @@ nicolive.login('foo@bar.com', 'xxx').then(client => {
     }));
     manager.viewer.connection.on('ejected', () => {
       console.log('追い出されました');
+      manager.disconnect();
     });
   });
 

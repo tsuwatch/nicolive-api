@@ -64,6 +64,12 @@ export default class Manager {
     });
   }
 
+  disconnect() {
+    for (let i=0; i<this._viewers.length; i++) {
+      this._viewers[i].connection.destroy();
+    }
+  }
+
   _connectPreviousRoom(server, res) {
     return new Promise((resolve) => {
       this.connect(server)

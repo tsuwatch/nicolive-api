@@ -107,6 +107,8 @@ export default class NicoliveAPI {
             title: stream.find('title').eq(0).text(),
             description: stream.find('description').eq(0).text(),
             default_community: stream.find('default_community').eq(0).text(),
+            watch_count: stream.find('watch_count').eq(0).text(),
+            comment_count: stream.find('comment_count').eq(0).text(),
             open_time: stream.find('open_time').eq(0).text(),
           },
           ms: {

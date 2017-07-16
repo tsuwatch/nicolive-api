@@ -37,9 +37,9 @@ export default class Room {
   }
 
   next() {
-    if (this.index > 10) return new Room('立ち見');
+    if (this.index > 10) return new Room('立ち見席');
     if (Number.isInteger(this.index)) return new Room(Room.ALL_LABEL[this.index + 1]);
-    return new Room('立ち見');
+    return new Room('立ち見席');
   }
 
   previous() {

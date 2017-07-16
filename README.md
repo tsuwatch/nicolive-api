@@ -21,6 +21,9 @@ nicolive.login('foo@bar.com', 'xxx').then(client => {
     manager.viewer.connection.on('comment', (comment => {
       console.log(comment.text);
     }));
+    manager.viewer.connection.on('ejected', () => {
+      console.log('追い出されました');
+    });
   });
 
   client.connectAlert().then(viewer => {

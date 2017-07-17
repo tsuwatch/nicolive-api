@@ -22,6 +22,7 @@ export default class Room {
   static getIndex(label) {
     if (/c[oh]\d+/.test(label)) return 0;
     if (/バックステージパス/.test(label)) return 0;
+    if (/アリーナ/.test(label)) return 0;
     if (/立ち見(\w)列/.test(label)) return Room.ALL_LABEL.findIndex(l => l === label);
     return null;
   }

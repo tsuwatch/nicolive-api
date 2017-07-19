@@ -18,15 +18,15 @@ export default class Comment {
 
   isUser() {
     const {premium} = this.attr;
-    return premium === '0' || premium === '1';
+    return !premium || premium === '1';
   }
 
   isSystem() {
     const {premium} = this.attr;
-    return premium === '3' || premium === '4' || premium === '5';
+    return premium === '2' || premium === '3' || premium === '6';
   }
 
   isBSP() {
-    return this.attr.premium === '6';
+    return this.attr.premium === '7';
   }
 }

@@ -12,6 +12,21 @@ export default class Comment {
   }
 
   isEject() {
-    return this.attr.premium === '3' && this.text.includes('/hb ifseetno');
+    const {premium} = this.attr;
+    return premium === '3' && this.text.includes('/hb ifseetno');
+  }
+
+  isUser() {
+    const {premium} = this.attr;
+    return premium === '0' || premium === '1';
+  }
+
+  isSystem() {
+    const {premium} = this.attr;
+    return premium === '3' || premium === '4' || premium === '5';
+  }
+
+  isBSP() {
+    return this.attr.premium === '6';
   }
 }

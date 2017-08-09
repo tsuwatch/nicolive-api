@@ -4,6 +4,7 @@ import querystring from 'querystring';
 import AlertViewer from './viewer/AlertViewer';
 import Manager from './Manager';
 import Community from './Community';
+import User from './User';
 
 export default class NicoliveAPI {
   static login({email, password}) {
@@ -206,6 +207,32 @@ export default class NicoliveAPI {
         community.communityId = communityId;
 
         resolve(community);
+      });
+    });
+  }
+
+  getUserInfo(userId) {
+    return new Promise((resolve, reject) => {
+      request({
+        url: `http://api.ce.nicovideo.jp/api/v1/user.info?user_id=${userId}`,
+      }, (err, res, body) => {
+        if (err) reject(err);
+
+        const data = cheerio(body);
+
+        const error = data.find('error');
+        if (error.length !== 0) {
+          reject({
+            code: error.find('code').eq(0).text(),
+            description: error.find('description').eq(0).text()
+          });
+        }
+
+        resolve(new User({
+          user_id: data.find('id').eq(0).text(),
+          nickname: data.find('nickname').eq(0).text(),
+          thumbnail_url: data.find('thumbnail_url').eq(0).text()
+        }))
       });
     });
   }

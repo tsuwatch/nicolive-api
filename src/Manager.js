@@ -24,7 +24,7 @@ export default class Manager {
         port,
         thread,
         open_time: this.live.openTime,
-        user_id: this.user.userId,
+        user_id: this.user.id,
         premium: this.user.premium,
         mail: '184',
         res_from: 0,

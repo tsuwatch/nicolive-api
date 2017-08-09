@@ -232,17 +232,14 @@ export default class NicoliveAPI {
 
 
   connectLive(liveId) {
-    let manager = null;
     return new Promise((resolve, reject) => {
       Promise.resolve()
         .then(() => {
           return this.getPlayerStatus(liveId)
         })
         .then(playerStatus => {
-          manager = new Manager(playerStatus, this.cookie);
-          return this.getCommunity(playerStatus.stream.default_community);
-        }).then(community => {
-          manager.live.community = community;
+          return new Manager(playerStatus, this.cookie);
+        }).then(manager => {
           manager.connectAll().then(() => resolve(manager));
         })
         .catch(err => reject(err));

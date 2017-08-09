@@ -97,29 +97,4 @@ export default class Manager {
   _isEjectMe(comment) {
     return comment.isEject() && Number(comment.attr.thread) === this.messageServer.thread && Number(comment.text.match(/\d+/)[0]) === Number(this.user.roomSeetno);
   }
-
-  _getAllInitialMessageServers() {
-    let arenaServer = this.messageServer;
-    for (let i=0; i<this.messageServer.room.index; i++) {
-      arenaServer = arenaServer.previous();
-    }
-    const community = this.live.community;
-    let standRoomCount = 0;
-    if (!community.isChannel()) {
-      if (community.level) {
-        standRoomCount = community.standRoomCount();
-      } else {
-        standRoomCount = Math.max(1, this.messageServer.room.index);
-      }
-    } else {
-      standRoomCount = 5;
-    }
-
-    const servers = [arenaServer];
-    for (let i=0; i<standRoomCount; i++) {
-      servers.push(servers[servers.length - 1].next());
-    }
-
-    return servers;
-  }
 }

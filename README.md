@@ -2,7 +2,11 @@
 [![npm version](https://badge.fury.io/js/nicolive-api.svg)](https://badge.fury.io/js/nicolive-api)
 [![Build Status](https://travis-ci.org/tsuwatch/nicolive-api.svg?branch=master)](https://travis-ci.org/tsuwatch/nicolive-api)
 
-a comments viewer wrapper for live.nicovideo.jp
+ニコニコ生放送のコメントビューア用に開発したコメントサーバなどに接続するためのライブラリです。以下のAPIなども利用することが可能です。
+
+- ユーザー情報
+- コミュニティ、チャンネル情報
+- ニコ生アラート
 
 ## Installation
 
@@ -15,9 +19,6 @@ import nicolive from 'nicolive-api'
 
 nicolive.login('foo@bar.com', 'xxx').then(client => {
   client.connectLive('lvxxxx').then(manager => {
-    manager.viewer.connection.on('handshaked', () => {
-      manager.viewer.comment('wakotsu');
-    });
     manager.viewer.connection.on('comment', (comment => {
       console.log(comment.text);
     }));

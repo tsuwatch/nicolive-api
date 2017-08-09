@@ -192,21 +192,33 @@ export default class NicoliveAPI {
     });
   }
 
-  getCommunity(communityId) {
+  getCommunityInfo(communityId) {
     return new Promise((resolve, reject) => {
-      const isChannel = /ch\d+/.test(communityId);
       request({
-        url: `${isChannel ? 'http://ch.nicovideo.jp/' : 'http://com.nicovideo.jp/community/'}${communityId}`,
+        url: `http://api.ce.nicovideo.jp/api/v1/community.info?id=${communityId}`,
         headers: {
           Cookie: this.cookie
         }
       }, (err, res, body) => {
         if (err) reject(err);
 
-        const community = isChannel ? Community.createByChannelData(cheerio(body)) : Community.createByCommunityData(cheerio(body));
-        community.communityId = communityId;
+        const data = cheerio(body);
 
-        resolve(community);
+        const error = data.find('error');
+        if (error.length !== 0) {
+          reject({
+            code: error.find('code').eq(0).text(),
+            description: error.find('description').eq(0).text()
+          });
+        }
+
+        resolve(new Community({
+          global_id: data.find('global_id').eq(0).text(),
+          name: data.find('name').eq(0).text(),
+          description: data.find('description').eq(0).text(),
+          level: data.find('level').eq(0).text(),
+          thumbnail: data.find('thumbnail').eq(0).text()
+        }));
       });
     });
   }

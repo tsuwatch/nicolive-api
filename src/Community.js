@@ -5,30 +5,16 @@ export default class Community {
     ];
   }
 
-  static createByCommunityData(htmlData) {
-    return new this({
-      title: htmlData.find('.communityData > .title').text().trim(),
-      level: ~~htmlData.find('.communityScale > .content').first().text().trim(),
-      thumbnailUrl: htmlData.find('.communityThumbnail').find('img').attr('src')
-    });
-  }
-
-  static createByChannelData(htmlData) {
-    return new this({
-      title: htmlData.find('#head_cp_breadcrumb').find('h1 > a').text().trim(),
-      thumbnailUrl: htmlData.find('#cp_symbol').find('img').attr('data-original')
-    });
-  }
-
-  constructor({communityId, title, level, thumbnailUrl}) {
-    this.communityId = communityId;
-    this.title = title;
+  constructor({global_id, name, description, level, thumbnail} = {}) {
+    this.id = global_id;
+    this.name = name;
+    this.description = description;
     this.level = level;
-    this.thumbnailUrl = thumbnailUrl;
+    this.thumbnail = thumbnail;
   }
 
   isChannel() {
-    return /ch\d+/.test(this.communityId);
+    return /ch\d+/.test(this.id);
   }
 
   standRoomCount() {

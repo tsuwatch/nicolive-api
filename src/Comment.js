@@ -12,8 +12,7 @@ export default class Comment {
   }
 
   isEject() {
-    const {premium} = this.attr;
-    return premium === '3' && this.text.includes('/hb ifseetno');
+    return this.isSystem() && this.text.includes('/hb ifseetno');
   }
 
   isUser() {

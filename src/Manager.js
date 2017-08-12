@@ -42,11 +42,11 @@ export default class Manager {
   }
 
   seekArenaRoom() {
-    return new Promise((resolve) => this._connectPreviousRoom(this._messageServers[0].previous(), resolve));
+    return new Promise((resolve) => this._connectPreviousRoom(this._messageServers[0], resolve));
   }
 
   seekLastRoom() {
-    return new Promise((resolve) => this._connectNextRoom(this._messageServers[this._messageServers.length - 1].next(), resolve));
+    return new Promise((resolve) => this._connectNextRoom(this._messageServers[this._messageServers.length - 1], resolve));
   }
 
   connectAll() {
@@ -71,6 +71,8 @@ export default class Manager {
   }
 
   _connectPreviousRoom(server, res) {
+    const previousServer = server.previous();
+    if (!previousServer) return res();
     return new Promise((resolve) => {
       this.connect(server)
         .then(viewer => {
@@ -79,10 +81,12 @@ export default class Manager {
           resolve(server);
         })
         .catch(() => res());
-    }).then(server => this._connectPreviousRoom(server.previous(), res));
+    }).then(server => this._connectPreviousRoom(server, res));
   }
 
   _connectNextRoom(server, res) {
+    const nextRoom = server.next();
+    if (!nextRoom) return res();
     return new Promise((resolve) => {
       this.connect(server)
         .then(viewer => {
@@ -91,7 +95,7 @@ export default class Manager {
           resolve(server);
         })
         .catch(() => res());
-    }).then(server => this._connectNextRoom(server.next(), res));
+    }).then(server => this._connectNextRoom(server, res));
   }
 
   _isEjectMe(comment) {

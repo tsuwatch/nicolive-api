@@ -50,6 +50,8 @@ export default class MessageServer {
     const serverNumber = ~~this.addr.match(/\D+(\d+)\D+/)[1];
     const serverIndex = this.getServerIndex(serverNumber);
 
+    if (serverIndex === -1) return null;
+
     let server = null;
     if (count === -1 && this.isFirstMessageServer(serverNumber)) {
       server = MessageServer.lastMessageServer(this.isChannel());

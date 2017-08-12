@@ -74,25 +74,25 @@ export default class Manager {
     const previousServer = server.previous();
     if (!previousServer) return res();
     return new Promise((resolve) => {
-      this.connect(server)
+      this.connect(previousServer)
         .then(viewer => {
-          this._messageServers.unshift(server);
+          this._messageServers.unshift(previousServer);
           this._viewers.unshift(viewer);
-          resolve(server);
+          resolve(previousServer);
         })
         .catch(() => res());
     }).then(server => this._connectPreviousRoom(server, res));
   }
 
   _connectNextRoom(server, res) {
-    const nextRoom = server.next();
-    if (!nextRoom) return res();
+    const nextServer = server.next();
+    if (!nextServer) return res();
     return new Promise((resolve) => {
-      this.connect(server)
+      this.connect(nextServer)
         .then(viewer => {
-          this._messageServers.push(server);
+          this._messageServers.push(nextServer);
           this._viewers.push(viewer);
-          resolve(server);
+          resolve(nextServer);
         })
         .catch(() => res());
     }).then(server => this._connectNextRoom(server, res));

@@ -10,7 +10,8 @@
   "scripts": {
     "prepublish": "npm run build",
     "lint": "eslint ./src",
-    "build": "babel src -d lib"
+    "build": "babel src -d lib",
+    "test": "npm run lint"
   },
   "repository": {
     "type": "git",

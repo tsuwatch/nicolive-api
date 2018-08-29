@@ -2,16 +2,16 @@ export default class Room {
   static get ALL_LABEL() {
     return [
       'アリーナ',
-      '立ち見A列',
-      '立ち見B列',
-      '立ち見C列',
-      '立ち見D列',
-      '立ち見E列',
-      '立ち見F列',
-      '立ち見G列',
-      '立ち見H列',
-      '立ち見I列',
-      '立ち見J列',
+      '立ち見1',
+      '立ち見2',
+      '立ち見3',
+      '立ち見4',
+      '立ち見5',
+      '立ち見6',
+      '立ち見7',
+      '立ち見8',
+      '立ち見9',
+      '立ち見10',
     ];
   }
 
@@ -23,7 +23,7 @@ export default class Room {
     if (/c[oh]\d+/.test(label)) return 0;
     if (/バックステージパス/.test(label)) return 0;
     if (/アリーナ/.test(label)) return 0;
-    if (/立ち見(\w)列/.test(label)) return Room.ALL_LABEL.findIndex(l => l === label);
+    if (/立ち見(\d)/.test(label)) return Room.ALL_LABEL.findIndex(l => l === label);
     return null;
   }
 

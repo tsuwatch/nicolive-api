@@ -1,6 +1,6 @@
 {
   "name": "nicolive-api",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "api client for live.nicovideo.jp",
   "main": "lib/index.js",
   "files": [

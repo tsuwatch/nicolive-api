@@ -28,4 +28,9 @@ export default class Comment {
   isBSP() {
     return this.attr.premium === '7';
   }
+
+  isOrigin() {
+    const {origin} = this.attr;
+    return !origin;
+  }
 }
